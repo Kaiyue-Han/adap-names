@@ -20,7 +20,8 @@ export class Name {
 
     /** Expects that all Name components are properly masked */
     constructor(other: string[], delimiter?: string) {
-        throw new Error("needs implementation or deletion");
+        this.components = other;
+        this.delimiter = delimiter ?? DEFAULT_DELIMITER;
     }
 
     /**
@@ -29,7 +30,16 @@ export class Name {
      * Users can vary the delimiter character to be used
      */
     public asString(delimiter: string = this.delimiter): string {
-        throw new Error("needs implementation or deletion");
+        let result : string = "";
+        for (let i = 0; i < this.components.length; i++) {
+            let ch = this.components[i];
+            ch = this.unescapeComponent(ch);
+            result += ch;
+            if (i != this.components.length - 1){
+                result += delimiter;
+            }
+        }
+        return result;
     }
 
     /** 
@@ -38,36 +48,72 @@ export class Name {
      * The special characters in the data string are the default characters
      */
     public asDataString(): string {
-        throw new Error("needs implementation or deletion");
+        let result : string = "";
+        for (let i = 0; i < this.components.length; i++) {
+            const ch = this.components[i];
+            if (i == this.components.length - 1){
+                result += DEFAULT_DELIMITER;
+            }
+        }
+        return result;
     }
 
     /** Returns properly masked component string */
     public getComponent(i: number): string {
-        throw new Error("needs implementation or deletion");
+        return this.components[i];
     }
 
     /** Expects that new Name component c is properly masked */
     public setComponent(i: number, c: string): void {
-        throw new Error("needs implementation or deletion");
+        if (i < 0 || i >= this.components.length) {
+            throw new RangeError(`Index ${i} out of range`);
+        }
+        this.components[i] = c;
     }
 
      /** Returns number of components in Name instance */
      public getNoComponents(): number {
-        throw new Error("needs implementation or deletion");
+        return this.components.length;
     }
 
     /** Expects that new Name component c is properly masked */
     public insert(i: number, c: string): void {
-        throw new Error("needs implementation or deletion");
+        if (i < 0 || i > this.components.length) {
+            throw new RangeError(`Index ${i} out of range [0, ${this.components.length}]`);
+        }
+        this.components.splice(i, 0, c);
     }
 
     /** Expects that new Name component c is properly masked */
     public append(c: string): void {
-        throw new Error("needs implementation or deletion");
+        this.components.push(c);
     }
 
     public remove(i: number): void {
-        throw new Error("needs implementation or deletion");
+        if (i < 0 || i >= this.components.length) {
+            throw new RangeError(`Index ${i} out of range`);
+        }
+
+        this.components.splice(i, 1);
+    }
+
+    private unescapeComponent(c: string): string {
+        let result : string = "";
+        for (let i = 0; i < c.length; i++) {
+            const ch = c[i];
+            if (ch === "\\") {
+                if (i  < c.length - 1) {
+                    result += c[i + 1];
+                    i++;
+                }
+                else {
+                    result += "\\";
+                }
+            } else {
+            result += ch; 
+            }
+        }
+        return result;
     }
 
 }
