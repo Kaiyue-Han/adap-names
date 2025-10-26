@@ -51,7 +51,8 @@ export class Name {
         let result : string = "";
         for (let i = 0; i < this.components.length; i++) {
             const ch = this.components[i];
-            if (i == this.components.length - 1){
+            result += ch;
+            if (i != this.components.length - 1){
                 result += DEFAULT_DELIMITER;
             }
         }
