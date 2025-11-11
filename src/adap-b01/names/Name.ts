@@ -102,7 +102,7 @@ export class Name {
         let result : string = "";
         for (let i = 0; i < c.length; i++) {
             const ch = c[i];
-            if (ch === "\\") {
+            if (ch === "\\" ) {
                 if (i  < c.length - 1) {
                     result += c[i + 1];
                     i++;
