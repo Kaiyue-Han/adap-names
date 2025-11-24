@@ -85,7 +85,20 @@ export abstract class AbstractName implements Name {
     abstract remove(i: number): void;
 
     public concat(other: Name): void {
-        throw new Error("needs implementation or deletion");
+        for (let i = 0; i < other.getNoComponents(); i++) {
+
+            const plain = this.unescapeComponent(other.getComponent(i));
+            let reMasked = "";
+            for (let j = 0; j < plain.length; j++) {
+                const ch = plain[j];
+                if (ch === ESCAPE_CHARACTER || ch === this.delimiter) {
+                    reMasked += ESCAPE_CHARACTER;
+                }
+                reMasked += ch;
+            }
+
+            this.append(reMasked);
+        }
     }
 
     private unescapeComponent(c: string): string {
