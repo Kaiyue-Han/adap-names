@@ -70,7 +70,7 @@ export class StringName implements Name {
     public insert(n: number, c: string): void {
         const comps = this.parseComponents(this.name, this.delimiter);
         if (n < 0 || n > comps.length) {
-            throw new RangeError(`Index ${n} out of range [0, ${comps.length}]`);
+            throw new RangeError(`Index ${n} out of range`);
         }
         comps.splice(n, 0, c);
         this.rebuildFromComponents(comps);

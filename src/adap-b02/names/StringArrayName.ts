@@ -61,7 +61,7 @@ export class StringArrayName implements Name {
 
     public insert(i: number, c: string): void {
         if (i < 0 || i > this.components.length) {
-            throw new RangeError(`Index ${i} out of range [0, ${this.components.length}]`);
+            throw new RangeError(`Index ${i} out of range`);
         }
         this.components.splice(i, 0, c);
     }
@@ -79,23 +79,19 @@ export class StringArrayName implements Name {
     }
 
     public concat(other: Name): void {
+        for (let i = 0; i < other.getNoComponents(); i++) {
 
-            const otherDelim = other.getDelimiterCharacter();
-
-            for (let i = 0; i < other.getNoComponents(); i++) {
-
-                let plain = this.unescapeComponent(other.getComponent(i));
-                let reMasked = "";
-                for (let j = 0; j < plain.length; j++) {
-                    const ch = plain[j];
-                    if (ch === ESCAPE_CHARACTER || ch === this.delimiter) {
-                        reMasked += ESCAPE_CHARACTER;
-                    }
-                    reMasked += ch;
+            let plain = this.unescapeComponent(other.getComponent(i));
+            let reMasked = "";
+            for (let j = 0; j < plain.length; j++) {
+                const ch = plain[j];
+                if (ch === ESCAPE_CHARACTER || ch === this.delimiter) {
+                    reMasked += ESCAPE_CHARACTER;
                 }
-
-                this.components.push(reMasked);
+                reMasked += ch;
             }
+            this.components.push(reMasked);
+        }
     }
 
     private unescapeComponent(c: string): string {

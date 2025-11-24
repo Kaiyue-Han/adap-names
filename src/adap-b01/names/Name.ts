@@ -80,7 +80,7 @@ export class Name {
     /** Expects that new Name component c is properly masked */
     public insert(i: number, c: string): void {
         if (i < 0 || i > this.components.length) {
-            throw new RangeError(`Index ${i} out of range [0, ${this.components.length}]`);
+            throw new RangeError(`Index ${i} out of range`);
         }
         this.components.splice(i, 0, c);
     }
