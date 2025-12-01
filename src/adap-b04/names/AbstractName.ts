@@ -1,58 +1,69 @@
 import { DEFAULT_DELIMITER, ESCAPE_CHARACTER } from "../common/Printable";
 import { Name } from "./Name";
 import { IllegalArgumentException } from "../common/IllegalArgumentException";
-import { MethodFailedException } from "../common/MethodFailedException";
 import { InvalidStateException } from "../common/InvalidStateException";
+import { MethodFailedException } from "../common/MethodFailedException";
 
 export abstract class AbstractName implements Name {
 
     protected delimiter: string = DEFAULT_DELIMITER;
 
-    constructor(delimiter: string = DEFAULT_DELIMITER) {
-
-        IllegalArgumentException.assert(
-            delimiter !== null && delimiter !== undefined,
-            "delimiter must not be null or undefined"
-        );
-        IllegalArgumentException.assert(
-            delimiter.length === 1,
-            "delimiter must be exactly one character"
-        );
-
-        this.delimiter = delimiter;
-        this.verifyInvariant();
+    private static isValidDelimiter(d: string | null | undefined): boolean {
+        return d != null && d.length === 1;
     }
-    
-    public abstract clone(): Object;
+
+    constructor(delimiter: string = DEFAULT_DELIMITER) {
+        IllegalArgumentException.assert(
+            AbstractName.isValidDelimiter(delimiter),
+            "delimiter must be a single, non-null character"
+        );
+        this.delimiter = delimiter;
+    }
+
+    protected assertInvariant(): void {
+        InvalidStateException.assert(
+            AbstractName.isValidDelimiter(this.delimiter),
+            "delimiter must always be a single character"
+        );
+        InvalidStateException.assert(
+            this.getNoComponents() >= 0,
+            "number of components must not be negative"
+        );
+    }
+
+    public clone(): Name {
+        const arr: string[] = [];
+        const count = this.getNoComponents();
+
+        for (let i = 0; i < count; i++) {
+            arr.push(this.getComponent(i));
+        }
+
+        const cloned = new (this.constructor as any)(arr, this.delimiter) as Name;
+
+        MethodFailedException.assert(
+            cloned.getNoComponents() === count,
+            "clone must have the same number of components"
+        );
+
+        return cloned;
+    }
 
     public asString(delimiter: string = this.delimiter): string {
-
         IllegalArgumentException.assert(
-            delimiter !== null && delimiter !== undefined,
-            "asString: delimiter must not be null or undefined"
-        );
-        IllegalArgumentException.assert(
-            delimiter.length === 1,
-            "asString: delimiter must be one character"
+            AbstractName.isValidDelimiter(delimiter),
+            "delimiter must be a single, non-null character"
         );
 
         let result = "";
-        const n = this.getNoComponents();
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < this.getNoComponents(); i++) {
             const masked = this.getComponent(i);
             const plain = this.unescapeComponent(masked);
             result += plain;
-            if (i < n - 1) {
+            if (i !== this.getNoComponents() - 1) {
                 result += delimiter;
             }
         }
-
-
-        MethodFailedException.assert(
-            result !== null && result !== undefined,
-            "asString: result must not be null"
-        );
-
         return result;
     }
 
@@ -61,46 +72,30 @@ export abstract class AbstractName implements Name {
     }
 
     public asDataString(): string {
-        const n = this.getNoComponents();
         let result = "";
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < this.getNoComponents(); i++) {
             result += this.getComponent(i);
-            if (i < n - 1) {
+            if (i !== this.getNoComponents() - 1) {
                 result += DEFAULT_DELIMITER;
             }
         }
-
-        MethodFailedException.assert(
-            result !== null && result !== undefined,
-            "asDataString: result must not be null"
-        );
         return result;
     }
 
-    public isEqual(other: Object): boolean {
+    public isEqual(other: Name): boolean {
         IllegalArgumentException.assert(
             other !== null && other !== undefined,
-            "isEqual: other must not be null"
+            "other must not be null or undefined"
         );
 
-        const o = other as any as Name;
-        if (typeof o.getNoComponents !== "function" ||
-            typeof o.getComponent !== "function" ||
-            typeof o.getDelimiterCharacter !== "function") {
+        if (this.getDelimiterCharacter() !== other.getDelimiterCharacter())
             return false;
-        }
+        if (this.getNoComponents() !== other.getNoComponents())
+            return false;
 
-        if (this.getDelimiterCharacter() !== o.getDelimiterCharacter()) {
-            return false;
-        }
-        const n = this.getNoComponents();
-        if (n !== o.getNoComponents()) {
-            return false;
-        }
-        for (let i = 0; i < n; i++) {
-            if (this.getComponent(i) !== o.getComponent(i)) {
+        for (let i = 0; i < this.getNoComponents(); i++) {
+            if (this.getComponent(i) !== other.getComponent(i))
                 return false;
-            }
         }
         return true;
     }
@@ -122,7 +117,6 @@ export abstract class AbstractName implements Name {
         return this.delimiter;
     }
 
-
     abstract getNoComponents(): number;
 
     abstract getComponent(i: number): string;
@@ -135,16 +129,14 @@ export abstract class AbstractName implements Name {
     public concat(other: Name): void {
         IllegalArgumentException.assert(
             other !== null && other !== undefined,
-            "concat: other must not be null"
+            "other must not be null or undefined"
         );
 
         const before = this.getNoComponents();
-        const addCount = other.getNoComponents();
 
-        for (let i = 0; i < addCount; i++) {
-            const incomingMasked = other.getComponent(i);
-            const plain = this.unescapeComponent(incomingMasked);
+        for (let i = 0; i < other.getNoComponents(); i++) {
 
+            const plain = this.unescapeComponent(other.getComponent(i));
             let reMasked = "";
             for (let j = 0; j < plain.length; j++) {
                 const ch = plain[j];
@@ -153,33 +145,17 @@ export abstract class AbstractName implements Name {
                 }
                 reMasked += ch;
             }
+
             this.append(reMasked);
         }
 
+        this.assertInvariant();
+
         MethodFailedException.assert(
-            this.getNoComponents() === before + addCount,
-            "concat: number of components incorrect after concat"
-        );
-        this.verifyInvariant();
-    }
-
-
-    protected verifyInvariant(): void {
-        InvalidStateException.assert(
-            this.delimiter !== null && this.delimiter !== undefined,
-            "invariant: delimiter must not be null or undefined"
-        );
-        InvalidStateException.assert(
-            this.delimiter.length === 1,
-            "invariant: delimiter must be one character"
-        );
-        const n = this.getNoComponents();
-        InvalidStateException.assert(
-            Number.isInteger(n) && n >= 0,
-            "invariant: number of components must be a non-negative integer"
+            this.getNoComponents() === before + other.getNoComponents(),
+            "concat must increase number of components by the size of other"
         );
     }
-
 
     protected unescapeComponent(c: string): string {
         let result = "";
