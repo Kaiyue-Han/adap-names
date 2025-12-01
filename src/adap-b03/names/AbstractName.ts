@@ -101,7 +101,7 @@ export abstract class AbstractName implements Name {
         }
     }
 
-    private unescapeComponent(c: string): string {
+    protected unescapeComponent(c: string): string {
         let result = "";
         for (let i = 0; i < c.length; i++) {
             const ch = c[i];

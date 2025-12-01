@@ -45,21 +45,4 @@ export class StringArrayName extends AbstractName {
         this.components.splice(i, 1);
     }
 
-    public concat(other: Name): void {
-        const otherDelim = other.getDelimiterCharacter();
-
-        for (let i = 0; i < other.getNoComponents(); i++) {
-
-            let plain = this.unescapeComponent(other.getComponent(i));
-            let reMasked = "";
-            for (let j = 0; j < plain.length; j++) {
-                const ch = plain[j];
-                if (ch === ESCAPE_CHARACTER || ch === this.delimiter) {
-                    reMasked += ESCAPE_CHARACTER;
-                }
-                reMasked += ch;
-            }
-            this.components.push(reMasked);
-        }
-    }
 }
